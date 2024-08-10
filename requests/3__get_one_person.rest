@@ -1,7 +1,7 @@
 // Should get { id:1, name:"Arto Hellas", number:"040-123456" }
-GET http://localhost:3001/api/persons/1
+GET https://backend-er4v.onrender.com/api/persons/1
 
 ###
 
 // Should get "404 Not Found" response
-GET http://localhost:3001/api/persons/0
+GET https://backend-er4v.onrender.com/api/persons/0
