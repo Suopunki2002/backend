@@ -1,0 +1,28 @@
+// Should return { error: 'name missing' }
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "number": "+31 12 79736383"
+}
+
+###
+
+// Should return { error: 'number missing' }
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Edsger Dijkstra"
+}
+
+###
+
+// Should return { error: 'name must be unique'}
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{ 
+  "name": "Ada Lovelace", 
+  "number": "39-44-5323523"
+}
