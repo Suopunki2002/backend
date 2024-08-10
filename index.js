@@ -2,9 +2,11 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 
+require('dotenv').config();
+const Person = require('./models/person');
+
 const app = express();
 
-// Middlewares
 app.use(express.json());
 app.use(express.static('dist'));
 app.use(cors());
@@ -13,94 +15,51 @@ app.use(morgan(
   ':method :url :status :res[content-length] - :response-time ms :data'
 ));
 
-let persons = [
-  { 
-    "id": "1",
-    "name": "Arto Hellas", 
-    "number": "040-123456"
-  },
-  { 
-    "id": "2",
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-  },
-  { 
-    "id": "3",
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-  },
-  { 
-    "id": "4",
-    "name": "Mary Poppendieck", 
-    "number": "39-23-6423122"
-  }
-];
-
-app.get('/info', (req, res) => {
+app.get('/info', (request, response) => {
   const personCount = `Phonebook has info for ${persons.length} people`;
   const date = new Date().toUTCString();
-  res.send(`<p>${personCount}</p><p>${date}</p>`);
+  response.send(`<p>${personCount}</p><p>${date}</p>`);
 });
 
-const generateId = () => {
-  // min is inclusive, max exlusive
-  const getRandomBetween = (min, max) => {
-    return Math.ceil((Math.random() * (max - min) + min));
-  };
-  const currentIds = persons.map(p => Number(p.id));
-  const upperBound = 1000;
-  let id = getRandomBetween(1, upperBound);
-  while (currentIds.includes(id)) {
-    id = getRandomBetween(1, upperBound);
-  }
-  return String(id);
-};
-
-app.post('/api/persons', (req, res) => {
-  const body = req.body;
+app.post('/api/persons', (request, response) => {
+  const body = request.body;
 
   if (!body.name) {
-    return res.status(400).json({
+    return response.status(400).json({
       error: 'name missing'
     });
   }
 
   if (!body.number) {
-    return res.status(400).json({
+    return response.status(400).json({
       error: 'number missing'
     });
   }
 
-  const names = persons.map(p => p.name);
-  if (names.includes(body.name)) {
-    return res.status(400).json({
-      error: 'name must be unique'
-    });
-  }
-
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number
-  };
+  });
   
-  persons = persons.concat(person);
-
-  res.json(person);
+  person.save().then(savedPerson => {
+    response.json(savedPerson);
+  });
 });
 
-app.get('/api/persons', (req, res) => {
-  res.json(persons);
+app.get('/api/persons', (request, response) => {
+  Person.find({}).then(persons => {
+    console.log(persons);
+    response.json(persons);
+  });
 });
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = req.params.id;
-  const person = persons.find(p => p.id === id);
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+app.get('/api/persons/:id', (request, response) => {
+  Person
+    .findById(request.params.id)
+    .then(person => {
+      console.log(person);
+      response.json(person);
+    });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
